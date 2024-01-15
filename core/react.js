@@ -28,16 +28,22 @@ function render(element, parent) {
     },
   };
 
+  root = rootWork;
   nextUnitOfWork = performUnitOfWork(rootWork);
 }
 
 let nextUnitOfWork = null;
+let root = null;
 function workLoop(deadline) {
   let shouldYield = false;
   while (!shouldYield && nextUnitOfWork) {
     nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
 
     shouldYield = deadline.timeRemaining() < 1;
+  }
+
+  if (!nextUnitOfWork && root) {
+    commitRoot();
   }
 
   requestIdleCallback(workLoop);
@@ -52,7 +58,7 @@ function performUnitOfWork(work) {
         ? document.createTextNode('')
         : document.createElement(work.type));
 
-    work.parent.dom.appendChild(dom);
+    // work.parent.dom.appendChild(dom);
     // 2.更新props
     Object.keys(work.props).forEach((prop) => {
       if (prop !== 'children') {
@@ -91,6 +97,23 @@ function performUnitOfWork(work) {
   }
 
   return work.parent?.sibling;
+}
+
+function commitRoot() {
+  commitWork(root.child);
+
+  root = null;
+}
+
+function commitWork(work) {
+  if (!work) {
+    return;
+  }
+
+  const domParent = work.parent.dom;
+  domParent.appendChild(work.dom);
+
+  commitWork(work.child);
 }
 
 export default {
