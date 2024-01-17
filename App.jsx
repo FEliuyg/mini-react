@@ -10,6 +10,7 @@ function App() {
       Hello React
       <Counter num={111} />
       <Counter num={222} />
+      <button onClick={() => console.log('111')}>click</button>
     </div>
   );
 }
